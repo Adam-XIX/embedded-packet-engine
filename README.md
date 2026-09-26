@@ -1,46 +1,56 @@
-# Real-Time Edge Signal Processing & Telemetry Node
+📦 Embedded Packet Engine
+==========================
 
-A lightweight, high-performance C-based telemetry packet engine designed for resource-constrained embedded systems (e.g., STM32, ESP32, AVR). Implements a non-blocking Finite State Machine (FSM) stream parser coupled with a Circular FIFO Ring Buffer to ingest noisy UART/Serial sensor data streams without losing packets.
+🚀 Overview
+-----------
+
+**Embedded Packet Engine** is a lightweight, modular C-based framework for real-time telemetry packet processing on resource-constrained embedded systems (e.g., STM32, ESP32, AVR).
+
+It combines a non-blocking **Finite State Machine (FSM) parser** with a **Circular FIFO Ring Buffer** to ingest noisy UART/serial sensor data streams without dropping packets — making it a solid foundation for embedded communication systems, sensor telemetry, or simulation environments.
 
 ---
 
-## Architecture Overview
+🎯 Key Features
+----------------
+
+- ⚙️ Non-blocking, byte-by-byte FSM packet parser
+- 🔄 Circular FIFO ring buffer for safe ISR-to-CPU data handoff
+- 📡 Custom packet framing (`START_BYTE`, `LENGTH`, `PAYLOAD`, `CRC8`, `END_BYTE`)
+- ✅ CRC8 (XOR-based) checksum validation for error detection
+- 🧠 Lightweight, bare-metal-friendly design — no dynamic allocation required
+- 🧱 Modular architecture with clean header/source separation
+- 🧪 Built-in simulation harness for testing the pipeline end-to-end
+
+---
+
+🧱 Architecture
+----------------
+
+The engine is built around a straight-line ingestion pipeline:
 
 ```text
 [ Hardware UART / ISR Stream ]
-              │
-              ▼
-    ┌──────────────────┐
-    │  Circular Buffer  │  (FIFO Storage - 64 Bytes)
-    │   (Ring Buffer)   │
-    └─────────┬─────────┘
-              │
-              ▼
-    ┌──────────────────┐
-    │    FSM Parser     │  (State Machine Stream Ingestion)
-    └─────────┬─────────┘
-              │
-              ▼
-    ┌──────────────────┐
-    │   CRC8 Checksum   │  (Error Detection & Validation)
-    └─────────┬─────────┘
-              │
-              ▼
-    [ Decoded Frame Output ]
+              ↓
+     [ Circular Ring Buffer ]      ← FIFO storage (64 bytes)
+              ↓
+        [ FSM Parser ]             ← state-machine frame decoding
+              ↓
+       [ CRC8 Checksum ]           ← validation & error detection
+              ↓
+     [ Decoded Frame Output ]
 ```
 
----
+Each stage is independent, so you can:
 
-## Key Features
-
-- **Circular Ring Buffer (FIFO):** Safely stores incoming asynchronous bytes from hardware interrupts (ISR) to prevent buffer overflows during CPU tasks.
-- **Byte-by-Byte FSM Parser:** Non-blocking state machine processing bytes sequentially, filtering out transmission noise and preamble junk dynamically.
-- **Data Framing & Verification:** Implements custom packet framing (`START_BYTE`, `LENGTH`, `PAYLOAD`, `CRC8`, `END_BYTE`) with bitwise XOR CRC validation.
-- **Modular C Architecture:** Strict separation of interface headers (`include/`) and source logic (`src/`) following bare-metal C best practices.
+- swap in a larger/smaller ring buffer
+- add custom FSM states for new frame types
+- extend validation beyond CRC8
+- hook the decoded output into your own routing/handler logic
 
 ---
 
-## Packet Structure
+📡 Packet Structure
+---------------------
 
 | Start Byte | Payload Length | Payload Data | CRC Checksum | End Byte |
 | :---: | :---: | :---: | :---: | :---: |
@@ -48,10 +58,12 @@ A lightweight, high-performance C-based telemetry packet engine designed for res
 
 ---
 
-## Directory Layout
+📁 Project Structure
+----------------------
 
 ```text
 embedded-packet-engine/
+│
 ├── include/
 │   ├── packet_engine.h   # FSM parser states and frame definitions
 │   └── ring_buffer.h     # Circular buffer data structures and API
@@ -59,30 +71,31 @@ embedded-packet-engine/
 │   ├── main.c            # Telemetry stream simulation harness
 │   ├── packet_engine.c   # FSM parser logic & CRC validation
 │   └── ring_buffer.c     # FIFO ring buffer operations
-└── README.md             # Project documentation
+└── README.md             # Documentation
 ```
 
 ---
 
-## Build and Run
+⚙️ Build Instructions
+------------------------
 
-### Prerequisites
+### 🔧 Requirements
 
-- GCC Compiler (MinGW-w64 / MSYS2 on Windows, or native GCC on Linux)
+- GCC compiler (MinGW-w64 / MSYS2 on Windows, or native GCC on Linux)
 
-### Compilation
+### 🛠️ Compile
 
 ```bash
 gcc src/main.c src/packet_engine.c src/ring_buffer.c -o embedded_engine.exe
 ```
 
-### Execution
+### ▶️ Run
 
 ```bash
 ./embedded_engine.exe
 ```
 
-### Example Output
+### Expected Output
 
 ```text
 === PHASE 3: Ring Buffer + FSM Parser Pipeline ===
@@ -116,6 +129,35 @@ gcc src/main.c src/packet_engine.c src/ring_buffer.c -o embedded_engine.exe
 
 ---
 
-## About
+🧠 Design Philosophy
+----------------------
 
-A modular C-based UART data framing and CRC validation engine for embedded systems.
+This project follows three core principles:
+
+1. **Simplicity** → minimal overhead, clear byte-by-byte data flow
+2. **Modularity** → ring buffer, parser, and validation are independent units
+3. **Reliability** → non-blocking design and CRC validation built for noisy, real-world serial links
+
+---
+
+📌 Future Improvements
+-------------------------
+
+- [ ] Support larger/variable-size payloads
+- [ ] Add a Makefile for streamlined builds
+- [ ] Add a `tests/` suite for automated validation
+- [ ] Real UART/DMA integration examples (STM32/ESP32 HAL)
+- [ ] Configurable checksum (CRC8 → CRC16/CRC32)
+- [ ] Memory/footprint optimization pass for constrained MCUs
+
+---
+
+👨‍💻 Author
+-------------
+ADEM FATTOUCH
+---
+
+📜 License
+------------
+
+This project is intended for educational and research purposes.
